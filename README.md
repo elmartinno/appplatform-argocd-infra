@@ -1,93 +1,193 @@
-# argocd-infra
+# ArgoCD Infrastructure Template Repository
 
+This repository serves as a template for infrastructure components that are typically referenced from an ArgoCD applications repository. It contains configurations for essential infrastructure components using the App of Apps pattern in ArgoCD.
 
+## Overview
 
-## Getting started
+This repository is designed to be used in conjunction with an ArgoCD applications repository, not as a standalone deployment. However, it can be deployed independently if needed. It uses Helm charts to manage the deployment of various infrastructure components.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+The infrastructure components included are:
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **ArgoCD**: Declarative GitOps CD tool for Kubernetes
+- **Linkerd**: Ultralight service mesh for Kubernetes
+  - Linkerd CRDs
+  - Linkerd Control Plane
+- **Sealed Secrets**: Controller and tools for one-way encrypted Kubernetes Secrets
 
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Repository Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
-git branch -M master
-git push -uf origin master
+.
+├── Chart.yaml              # Helm chart metadata
+├── values.yaml            # Global configuration values
+├── templates/             # Helm templates
+└── infrastructure/        # Infrastructure components
+    ├── argocd/           # ArgoCD configuration
+    ├── linkerd-crds/     # Linkerd Custom Resource Definitions
+    └── linkerd/          # Linkerd service mesh configuration
 ```
 
-## Integrate with your tools
+## Configuration
 
-- [ ] [Set up project integrations](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/settings/integrations)
+The repository uses a Helm chart named `app-of-apps-infrastructure` to manage all components. Configuration is primarily done through the `values.yaml` file, which includes:
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- Global settings for all applications
+- Individual component configurations
+- Repository URLs and versions
+- Sync policies and automation settings
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Deployment Methods
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+1. **As Part of ArgoCD Apps Repository**:
+   - Reference it from your ArgoCD applications repository
+   - Configure the `values.yaml` inside the applications repository `.Values.infrastructure` to match your environment
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Configuration
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Global Settings
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+The `values.yaml` file contains global settings that apply to all applications:
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```yaml
+global:
+  repoURL: <your-repo-url>
+  targetRevision: HEAD
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+```
 
-## License
-For open source projects, say how it is licensed.
+### Component-Specific Settings
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Each infrastructure component can be enabled/disabled and configured independently in the `values.yaml` file.
+
+## Technical Details
+
+### Application Template Structure (templates/applications.yaml)
+
+The `applications.yaml` template is the core of this repository's App of Apps pattern implementation. It generates ArgoCD Application resources using a templating structure that supports both single and multi-source configurations.
+
+#### Root Application
+
+```yaml
+{{- if .Values.infrastructure.useInfrastructureAppOfAppsFromInfraRepo }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps-infrastructure
+  namespace: argocd
+# ... configuration ...
+{{- end }}
+```
+
+The root application is conditionally created based on the `useInfrastructureAppOfAppsFromInfraRepo` flag. This allows for deployment of the infrastructure components as part of the applications repository or as a standalone deployment.
+
+#### Child Applications Generation
+
+The template iterates through infrastructure components defined in `.Values.infrastructure`, creating individual ArgoCD Applications for each enabled component:
+
+##### Sync Wave Prioritization
+```yaml
+annotations:
+  {{- if or (eq $appName "argocd") (eq $appName "linkerd-crds") }}
+    argocd.argoproj.io/sync-wave: "-10"  # Highest priority
+  {{- else if eq $appName "linkerd-control-plane" }}
+    argocd.argoproj.io/sync-wave: "-9"   # Second priority
+  {{- else }}
+    argocd.argoproj.io/sync-wave: "-8"   # Default priority
+  {{- end }}
+```
+
+Critical components are deployed in a specific order using sync waves:
+- Wave -10: ArgoCD and Linkerd CRDs (highest priority)
+- Wave -9: Linkerd Control Plane
+- Wave -8: Other infrastructure components
+
+##### Source Configuration Patterns
+
+1. **Single Source Pattern**
+```yaml
+source:
+  repoURL: {{ $appConfig.source.repoURL | default $.Values.global.repoURL }}
+  targetRevision: {{ $appConfig.source.targetRevision | default $.Values.global.targetRevision }}
+```
+Used for simple applications with a single source repository.
+
+2. **Multi-Source Pattern**
+```yaml
+sources:
+  - chart: {{ $source.chart }}
+    repoURL: {{ $source.repoURL }}
+    targetRevision: {{ $source.targetRevision }}
+  - repoURL: {{ $.Values.global.repoURL }}
+    ref: app_repo
+  - repoURL: https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
+    ref: infra_repo
+```
+Supports complex scenarios with multiple source repositories:
+- Primary chart source (e.g., Helm chart repository)
+- Application repository reference
+- Infrastructure repository reference
+
+##### Value Overrides
+
+The template supports multiple levels of value overrides:
+1. Global values (`.Values.global`)
+2. Component-specific values (`.Values.infrastructure.$component`)
+3. Source-specific configurations
+4. Helm value files
+
+##### Namespace Handling
+
+Special namespace handling exists for critical components:
+```yaml
+destination:
+  {{- if eq $appName "argocd" }}
+  namespace: argocd
+  {{- else }}
+  namespace: {{ $appConfig.namespace }}
+  {{- end }}
+```
+
+##### Sync Policy Configuration
+
+Sync policies can be defined at both global and component levels:
+```yaml
+syncPolicy:
+  {{- if $appConfig.syncPolicy }}
+  {{- toYaml $appConfig.syncPolicy | nindent 4 }}
+  {{- else }}
+  {{- toYaml $.Values.global.syncPolicy | nindent 4 }}
+  {{- end }}
+```
+
+### Usage Examples
+
+#### Basic Component Configuration
+```yaml
+infrastructure:
+  argocd:
+    enabled: true
+    namespace: argocd
+    sources:
+      - repoURL: https://argoproj.github.io/argo-helm
+        chart: argo-cd
+        targetRevision: "7.8.2"
+```
+
+#### Multi-Source Configuration with Value Overrides
+```yaml
+infrastructure:
+  linkerd-control-plane:
+    enabled: true
+    namespace: linkerd
+    sources:
+      - repoURL: https://helm.linkerd.io/stable
+        chart: linkerd-control-plane
+        targetRevision: "1.16.11"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/linkerd/values.yaml
+```

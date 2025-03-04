@@ -1,0 +1,118 @@
+{{- /* Root App of Apps */}}
+{{- /* This section creates the parent Application that manages infrastructure components if enabled */}}
+{{- if .Values.infrastructure.useInfrastructureAppOfAppsFromInfraRepo | default false }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps-infrastructure
+  namespace: argocd
+spec:
+  project: {{ .Values.global.project }}
+  source:
+    repoURL: {{ .Values.global.repoURL }}
+    targetRevision: {{ .Values.infrastructure.targetRevision | default .Values.global.targetRevision }}
+    path: .
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: {{ .Values.global.destination.server }}
+    namespace: argocd
+  syncPolicy:
+    {{- toYaml .Values.global.syncPolicy | nindent 4 }}
+{{- end }}
+
+{{- /* Child Applications */}}
+{{- /* Iterates through all infrastructure applications and creates individual Argo CD Applications */}}
+{{- range $appName, $appConfig := .Values.infrastructure }}
+{{- if and (kindIs "map" $appConfig) $appConfig.enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $appName }}
+  namespace: argocd
+  annotations:
+  {{- /* Set sync-wave priorities for critical components */}}
+  {{- if or (eq $appName "argocd") (eq $appName "linkerd-crds") }}
+    argocd.argoproj.io/sync-wave: "-10"  {{- /* Highest priority: ArgoCD and Linkerd CRDs */}}
+  {{- else if eq $appName "linkerd-control-plane" }}
+    argocd.argoproj.io/sync-wave: "-9"   {{- /* Second priority: Linkerd Control Plane */}}
+  {{- else }}
+    argocd.argoproj.io/sync-wave: "-8"   {{- /* Default priority for other infrastructure components */}}
+  {{- end }}
+spec:
+  project: {{ $.Values.global.project }}
+  {{- /* Handle single source configuration */}}
+  {{- if $appConfig.source }}
+  source:
+    repoURL: {{ $appConfig.source.repoURL | default $.Values.global.repoURL }}
+    targetRevision: {{ $appConfig.source.targetRevision | default $.Values.global.targetRevision }}
+    {{- if $appConfig.source.directory }}
+    {{- toYaml $appConfig.source.directory | nindent 4 }}
+    {{- end }}
+    {{- if $appConfig.source.helm }}
+    {{- toYaml $appConfig.source.helm | nindent 4 }}
+    {{- else }}
+    helm:
+      valueFiles:
+        - applications/{{ $appName }}/values.yaml
+    {{- end }}
+  {{- else }}
+  {{- /* Handle multiple sources configuration */}}
+  sources:
+    {{- /* Configure primary chart source if specified */}}
+    {{- /* This block allows to override the default source from infrastructure repository AND/OR Helm values */}}
+    {{- if $appConfig.sources }}
+    {{- range $index, $source := $appConfig.sources }}
+    {{- if eq $index 0 }}
+    - chart: {{ $source.chart }}
+      repoURL: {{ $source.repoURL }}
+      targetRevision: {{ $source.targetRevision }}
+      {{- if $appConfig.helm }}
+      helm:
+        {{- toYaml $appConfig.helm | nindent 8 }}
+      {{- else if $source.helm }}
+      helm:
+        {{- toYaml $source.helm | nindent 8 }}
+      {{- end }}
+    {{- else }}
+    - {{ toYaml $source | nindent 6 | trim }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- /* Add application repository reference */}}
+    - repoURL: {{ $.Values.global.repoURL }}
+      targetRevision: {{ $.Values.global.targetRevision }}
+      ref: app_repo
+      directory:
+        exclude: "*"
+        {{- if and (index $appConfig.sources 0).directory (index $appConfig.sources 0).directory.include }}
+        include: "{{ (index $appConfig.sources 0).directory.include }}"
+        {{- else if $appConfig.directory }}
+        include: "{{ $appConfig.directory.include }}"
+        {{- end }}
+    {{- /* Add infrastructure repository reference */}}
+    - repoURL: https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
+      targetRevision: {{ $.Values.infrastructure.targetRevision }}
+      ref: infra_repo
+      directory:
+        exclude: "*"
+    {{- end }}
+  destination:
+    server: {{ $.Values.global.destination.server }}
+    {{- /* Special namespace handling for ArgoCD */}}
+    {{- if eq $appName "argocd" }}
+    namespace: argocd
+    {{- else }}
+    namespace: {{ $appConfig.namespace }}
+    {{- end }}
+  {{- /* Apply sync policy from app config or fall back to global */}}
+  syncPolicy:
+    {{- if $appConfig.syncPolicy }}
+    {{- toYaml $appConfig.syncPolicy | nindent 4 }}
+    {{- else }}
+    {{- toYaml $.Values.global.syncPolicy | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: app-of-apps-infrastructure
+description: App of Apps pattern for Infrastructure applications
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
