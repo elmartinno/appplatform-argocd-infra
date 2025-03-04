@@ -1,0 +1,49 @@
+# Global settings for all applications
+global:
+  repoURL:  https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
+  targetRevision: HEAD
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+infrastructure:
+  #useInfrastructureAppOfAppsFromInfraRepo: true
+  argocd:
+    enabled: true
+    sources:
+      - repoURL: https://argoproj.github.io/argo-helm
+        chart: argo-cd
+        targetRevision: "7.8.2"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/argocd/values.yaml
+  linkerd-crds:
+    enabled: true
+    namespace: linkerd
+    sources:
+      - repoURL: https://helm.linkerd.io/stable
+        chart: linkerd-crds
+        targetRevision: "1.8.0"
+  linkerd-control-plane:
+    enabled: true
+    namespace: linkerd
+    sources:
+      - repoURL: https://helm.linkerd.io/stable
+        chart: linkerd-control-plane
+        targetRevision: "1.16.11"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/linkerd/values.yaml
+  sealed-secrets:
+    enabled: true
+    namespace: sealed-secrets
+    sources:
+      - repoURL: https://bitnami-labs.github.io/sealed-secrets/
+        chart: sealed-secrets
+        targetRevision: "2.17.1"
