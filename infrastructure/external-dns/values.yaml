@@ -1,0 +1,9 @@
+provider:
+  name: aws
+policy: sync
+aws:
+  zoneType: "public"
+env:
+  - name: AWS_DEFAULT_REGION
+    value: eu-central-1
+logLevel: info

@@ -1,0 +1,9 @@
+crds:
+  enabled: true
+  keep: true
+
+# https://github.com/cert-manager/cert-manager/issues/5515#issuecomment-1479054700
+extraArgs:
+  - --enable-certificate-owner-ref=true
+  - --dns01-recursive-nameservers-only
+  - --dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53

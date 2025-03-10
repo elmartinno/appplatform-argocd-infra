@@ -14,6 +14,7 @@ global:
 
 infrastructure:
   #useInfrastructureAppOfAppsFromInfraRepo: true
+
   argocd:
     enabled: true
     sources:
@@ -23,6 +24,8 @@ infrastructure:
         helm:
           valueFiles:
             - $infra_repo/infrastructure/argocd/values.yaml
+            - $app_repo/infrastructure/argocd/values.yaml
+
   linkerd-crds:
     enabled: true
     namespace: linkerd
@@ -30,6 +33,10 @@ infrastructure:
       - repoURL: https://helm.linkerd.io/stable
         chart: linkerd-crds
         targetRevision: "1.8.0"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/linkerd-crds/values.yaml
+
   linkerd-control-plane:
     enabled: true
     namespace: linkerd
@@ -40,6 +47,8 @@ infrastructure:
         helm:
           valueFiles:
             - $infra_repo/infrastructure/linkerd/values.yaml
+            - $app_repo/infrastructure/linkerd/values.yaml
+
   sealed-secrets:
     enabled: true
     namespace: sealed-secrets
@@ -47,3 +56,39 @@ infrastructure:
       - repoURL: https://bitnami-labs.github.io/sealed-secrets/
         chart: sealed-secrets
         targetRevision: "2.17.1"
+
+  external-dns:
+    enabled: true
+    namespace: external-dns
+    sources:
+      - repoURL: https://kubernetes-sigs.github.io/external-dns/
+        chart: external-dns
+        targetRevision: "1.15.2"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/external-dns/values.yaml
+            - $app_repo/infrastructure/external-dns/values.yaml
+
+  cert-manager:
+    enabled: true
+    namespace: cert-manager
+    directoryFromInfraRepo:
+      include: infrastructure/cert-manager/resources/*
+    sources:
+      - repoURL: https://charts.jetstack.io
+        chart: cert-manager
+        targetRevision: "1.17.1"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/cert-manager/values.yaml
+
+  nginx:
+    enabled: true
+    namespace: nginx
+    sources:
+      - repoURL: https://kubernetes.github.io/ingress-nginx
+        chart: ingress-nginx
+        targetRevision: "4.12.0"
+        helm:
+          valueFiles:
+            - $infra_repo/infrastructure/nginx/values.yaml
