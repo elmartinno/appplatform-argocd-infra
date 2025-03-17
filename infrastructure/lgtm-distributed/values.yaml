@@ -1,0 +1,220 @@
+grafana-oncall:
+  enabled: false
+tempo:
+  enabled: true
+  retention: 48h
+  serviceAccount:
+    create: false
+    name: "observability-s3-service-account"
+  storage:
+    trace:
+      backend: s3
+      s3:
+        endpoint: s3.eu-central-1.amazonaws.com
+        region: eu-central-1
+
+grafana:
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 2Gi
+  env:
+    GF_SERVER_ROOT_URL: "foobar"
+    GF_SERVER_DOMAIN: "foobar"
+    GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    path: /
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          uid: loki
+          type: loki
+          url: http://{{ .Release.Name }}-loki-gateway
+          isDefault: false
+        - name: Mimir
+          uid: prom
+          type: prometheus
+          url: http://{{ .Release.Name }}-mimir-nginx/prometheus
+          isDefault: true
+        - name: Alertmanager
+          uid: alertmanager
+          type: alertmanager
+          url: http://{{ .Release.Name }}-mimir-nginx/alertmanager
+          isDefault: false
+          jsonData:
+            implementation: prometheus
+            handleGrafanaManagedAlerts: false
+        - name: Tempo
+          uid: tempo
+          type: tempo
+          url: http://{{ .Release.Name }}-tempo-query-frontend:3100
+          isDefault: false
+          jsonData:
+            tracesToLogsV2:
+              datasourceUid: loki
+            lokiSearch:
+              datasourceUid: loki
+            tracesToMetrics:
+              datasourceUid: prom
+            serviceMap:
+              datasourceUid: prom
+  sidecar:
+    dashboards:
+      enabled: true
+      labelValue: "1"
+      enableNewTablePanelSyntax: true
+      provider:
+        allowUiUpdates: true
+loki:
+  serviceAccount:
+    create: false
+    name: "observability-s3-service-account"
+  serviceMonitor:
+    enabled: true
+  selfMonitoring:
+    enabled: true
+    podLogs:
+      apiVersion: monitoring.grafana.com/v1alpha2
+  compactor:
+    enabled: true
+  loki:
+    structuredConfig:
+      auth_enabled: false
+      server:
+        # rpc error: code = ResourceExhausted desc = grpc: received message larger than max (7265006 vs. 4194304)
+        # https://github.com/grafana/loki/issues/2271#issuecomment-1697207709
+        grpc_server_max_recv_msg_size: 50971520 # 50MB
+        grpc_server_max_send_msg_size: 50971520 # 50MB
+      limits_config:
+        max_cache_freshness_per_query: 10m
+        max_query_parallelism: 100
+        reject_old_samples: true
+        reject_old_samples_max_age: 50h
+        split_queries_by_interval: 24h
+        retention_period: 48h
+      compactor:
+        retention_enabled: true
+        delete_request_store: s3
+        shared_store: s3
+      ruler:
+        alertmanager_url: http://{{ .Release.Name }}-mimir-nginx/alertmanager
+        storage:
+          type: s3
+          s3:
+            region: eu-central-1
+      schema_config:
+        configs:
+          - from: "2022-01-11"
+            index:
+              period: 24h
+              prefix: loki_index_
+            object_store: s3
+            schema: v12
+            store: boltdb-shipper
+      storage_config:
+        hedging:
+          at: 250ms
+        boltdb_shipper:
+          shared_store: s3
+      common:
+        path_prefix: /var/loki
+        storage:
+          s3:
+            # https://github.com/grafana/helm-charts/issues/1550#issuecomment-1176415452
+            endpoint: null
+            s3: s3://eu-central-1
+            s3forcepathstyle: true
+            region: eu-central-1
+      tracing:
+        enabled: true
+      # https://grafana.com/blog/2021/02/16/the-essential-config-settings-you-should-use-so-you-wont-drop-logs-in-loki/
+      ingester:
+        chunk_encoding: snappy
+        chunk_target_size: 1572864
+        max_chunk_age: 2h
+        chunk_idle_period: 2h
+        wal:
+          flush_on_shutdown: true
+      # https://github.com/grafana/mimir/discussions/5158
+      memberlist:
+        cluster_label: "loki"
+        cluster_label_verification_disabled: false
+mimir:
+  serviceAccount:
+    create: false
+    name: "observability-s3-service-account"
+  metaMonitoring:
+    dashboards:
+      enabled: true
+    annotations:
+      k8s-sidecar-target-directory: /tmp/dashboards
+    serviceMonitor:
+      enabled: true
+    prometheusRule:
+      enabled: true
+      mimirAlerts: true
+      mimirRules: true
+  chunks-cache:
+    enabled: false
+  index-cache:
+    enabled: false
+  metadata-cache:
+    enabled: false
+  results-cache:
+    enabled: false
+  alertmanager:
+    enabled: true
+  minio:
+    enabled: false
+  ingester:
+    replicas: 2
+  mimir:
+    structuredConfig:
+      # https://github.com/grafana/mimir/discussions/5158
+      memberlist:
+        cluster_label: "mimir"
+        cluster_label_verification_disabled: false
+      limits:
+        max_global_series_per_user: 1000000
+        ingestion_rate: 100000
+        compactor_blocks_retention_period: 48h
+        compactor_block_upload_enabled: true
+      common:
+        storage:
+          backend: s3
+          s3:
+            endpoint: "s3.eu-central-1.amazonaws.com"
+            region: eu-central-1
+      blocks_storage:
+        tsdb:
+          head_compaction_interval: 1m
+        s3:
+          endpoint: "s3.eu-central-1.amazonaws.com"
+          region: eu-central-1
+      alertmanager_storage:
+        s3:
+          endpoint: "s3.eu-central-1.amazonaws.com"
+          region: eu-central-1
+      ruler_storage:
+        s3:
+          endpoint: "s3.eu-central-1.amazonaws.com"
+          region: eu-central-1
+  nginx:
+    replicas: 3
+    ingress:
+      enabled: false
+      ingressClassName: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      tls:
+        - secretName: "mimir-prod-tls"
+          hosts:
+            - "foobar"
+    nginxConfig:
+      serverSnippet: "client_max_body_size 1G;"

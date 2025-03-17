@@ -94,13 +94,14 @@ spec:
         {{- end }}
     {{- /* Add infrastructure repository reference */}}
     - repoURL: https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
-      targetRevision: {{ $.Values.infrastructure.targetRevision }}
+      targetRevision: {{ $.Values.infrastructure.targetRevision | default $.Values.global.targetRevision }}
       ref: infra_repo
+      {{- if $appConfig.includeDirectoryFromInfraRepo }}
+      path: "{{ $appConfig.includeDirectoryFromInfraRepo }}"
+      {{- else }}
       directory:
         exclude: "*"
-        {{- if $appConfig.directoryFromInfraRepo }}
-        include: "{{ $appConfig.directoryFromInfraRepo.include }}"
-        {{- end }}
+      {{- end }}
     {{- end }}
   destination:
     server: {{ $.Values.global.destination.server }}

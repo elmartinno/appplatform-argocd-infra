@@ -1,0 +1,16 @@
+# This is needed for Grafana to work in HA mode
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-alerting
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: grafana-alerting
+    app.kubernetes.io/part-of: grafana
+spec:
+  type: ClusterIP
+  clusterIP: 'None'
+  ports:
+    - port: 9094
+  selector:
+    app.kubernetes.io/name: grafana
