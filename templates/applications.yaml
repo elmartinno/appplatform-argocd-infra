@@ -38,8 +38,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-10"  {{- /* Highest priority: ArgoCD and Linkerd CRDs */}}
   {{- else if eq $appName "linkerd-control-plane" }}
     argocd.argoproj.io/sync-wave: "-9"   {{- /* Second priority: Linkerd Control Plane */}}
+  {{- else if eq $appName "external-secrets" }}
+    argocd.argoproj.io/sync-wave: "-8"   {{- /* Third priority: External Secrets */}}
   {{- else }}
-    argocd.argoproj.io/sync-wave: "-8"   {{- /* Default priority for other infrastructure components */}}
+    argocd.argoproj.io/sync-wave: "-7"   {{- /* Default priority for other infrastructure components */}}
   {{- end }}
 spec:
   project: {{ $.Values.global.project }}

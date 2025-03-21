@@ -1,0 +1,3 @@
+serviceAccount:
+  annotations:
+    name: external-secrets
