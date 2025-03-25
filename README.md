@@ -4,7 +4,7 @@ This repository serves as a template for infrastructure components that are typi
 
 ## Overview
 
-This repository is designed to be used in conjunction with an ArgoCD applications repository, not as a standalone deployment. However, it can be deployed independently if needed. It uses Helm charts to manage the deployment of various infrastructure components.
+This repository is designed to be used in conjunction with an ArgoCD applications repository, not as a standalone deployment. It uses Helm charts to manage the deployment of various infrastructure components.
 
 The infrastructure components included are:
 
@@ -31,7 +31,6 @@ The infrastructure components included are:
 
 The repository uses a Helm chart named `app-of-apps-infrastructure` to manage all components. Configuration is primarily done through the `values.yaml` file, which includes:
 
-- Global settings for all applications
 - Individual component configurations
 - Repository URLs and versions
 - Sync policies and automation settings

@@ -1,31 +1,6 @@
-{{- /* Root App of Apps */}}
-{{- /* This section creates the parent Application that manages infrastructure components if enabled */}}
-{{- if .Values.infrastructure.useInfrastructureAppOfAppsFromInfraRepo | default false }}
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: app-of-apps-infrastructure
-  namespace: argocd
-spec:
-  project: {{ .Values.global.project }}
-  source:
-    repoURL: {{ .Values.global.repoURL }}
-    targetRevision: {{ .Values.infrastructure.targetRevision | default .Values.global.targetRevision }}
-    path: .
-    helm:
-      valueFiles:
-        - values.yaml
-  destination:
-    server: {{ .Values.global.destination.server }}
-    namespace: argocd
-  syncPolicy:
-    {{- toYaml .Values.global.syncPolicy | nindent 4 }}
-{{- end }}
-
-{{- /* Child Applications */}}
-{{- /* Iterates through all infrastructure applications and creates individual Argo CD Applications */}}
+{{- /* Child Applications - Dynamic generation of child applications based on configuration */}}
 {{- range $appName, $appConfig := .Values.infrastructure }}
-{{- if and (kindIs "map" $appConfig) $appConfig.enabled }}
+{{- if and $appConfig (kindIs "map" $appConfig) $appConfig.enabled (ne $appName "argocd") (ne $appName "argo-cd") }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -34,15 +9,19 @@ metadata:
   namespace: argocd
   annotations:
   {{- /* Set sync-wave priorities for critical components */}}
-  {{- if or (eq $appName "argocd") (eq $appName "linkerd-crds") }}
-    argocd.argoproj.io/sync-wave: "-10"  {{- /* Highest priority: ArgoCD and Linkerd CRDs */}}
+  {{- if eq $appName "argocd" }}
+    argocd.argoproj.io/sync-wave: "-101"
+  {{- else if or (eq $appName "linkerd-crds") (eq $appName "cert-manager") }}
+    argocd.argoproj.io/sync-wave: "-10"
   {{- else if eq $appName "linkerd-control-plane" }}
-    argocd.argoproj.io/sync-wave: "-9"   {{- /* Second priority: Linkerd Control Plane */}}
+    argocd.argoproj.io/sync-wave: "-9"
   {{- else if eq $appName "external-secrets" }}
-    argocd.argoproj.io/sync-wave: "-8"   {{- /* Third priority: External Secrets */}}
+    argocd.argoproj.io/sync-wave: "-8"
   {{- else }}
-    argocd.argoproj.io/sync-wave: "-7"   {{- /* Default priority for other infrastructure components */}}
+    argocd.argoproj.io/sync-wave: "-7"
   {{- end }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ $.Values.global.project }}
   {{- /* Handle single source configuration */}}
@@ -95,7 +74,7 @@ spec:
         include: "{{ $appConfig.directory.include }}"
         {{- end }}
     {{- /* Add infrastructure repository reference */}}
-    - repoURL: https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
+    - repoURL: {{ $.Values.infrastructure.repoURL | default $.Values.global.repoURL }}
       targetRevision: {{ $.Values.infrastructure.targetRevision | default $.Values.global.targetRevision }}
       ref: infra_repo
       {{- if $appConfig.includeDirectoryFromInfraRepo }}

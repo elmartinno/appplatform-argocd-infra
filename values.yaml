@@ -1,31 +1,4 @@
-# Global settings for all applications
-global:
-  repoURL:  https://gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
-  targetRevision: HEAD
-  project: default
-  destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-
 infrastructure:
-  #useInfrastructureAppOfAppsFromInfraRepo: true
-
-  argocd:
-    enabled: true
-    sources:
-      - repoURL: https://argoproj.github.io/argo-helm
-        chart: argo-cd
-        targetRevision: "7.8.2"
-        helm:
-          valueFiles:
-            - $infra_repo/infrastructure/argocd/values.yaml
-            - $app_repo/infrastructure/argocd/values.yaml
-
   linkerd-crds:
     enabled: true
     namespace: linkerd
@@ -48,14 +21,6 @@ infrastructure:
           valueFiles:
             - $infra_repo/infrastructure/linkerd/values.yaml
             - $app_repo/infrastructure/linkerd/values.yaml
-
-  sealed-secrets:
-    enabled: false
-    namespace: sealed-secrets
-    sources:
-      - repoURL: https://bitnami-labs.github.io/sealed-secrets/
-        chart: sealed-secrets
-        targetRevision: "2.17.1"
 
   external-secrets:
     enabled: true
@@ -92,17 +57,6 @@ infrastructure:
         helm:
           valueFiles:
             - $infra_repo/infrastructure/cert-manager/values.yaml
-
-  nginx:
-    enabled: true
-    namespace: nginx
-    sources:
-      - repoURL: https://kubernetes.github.io/ingress-nginx
-        chart: ingress-nginx
-        targetRevision: "4.12.0"
-        helm:
-          valueFiles:
-            - $infra_repo/infrastructure/nginx/values.yaml
 
   lgtm-distributed:
     enabled: true

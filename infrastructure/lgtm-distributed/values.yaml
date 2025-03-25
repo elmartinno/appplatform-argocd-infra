@@ -6,6 +6,8 @@ tempo:
   serviceAccount:
     create: false
     name: "observability-s3-service-account"
+  ingester:
+    terminationGracePeriodSeconds: 120
   storage:
     trace:
       backend: s3
@@ -27,6 +29,10 @@ grafana:
     ingressClassName: nginx
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     path: /
   datasources:
     datasources.yaml:
@@ -83,6 +89,8 @@ loki:
       apiVersion: monitoring.grafana.com/v1alpha2
   compactor:
     enabled: true
+  ingester:
+    terminationGracePeriodSeconds: 120
   loki:
     structuredConfig:
       auth_enabled: false
@@ -170,10 +178,24 @@ mimir:
     enabled: false
   alertmanager:
     enabled: true
+    terminationGracePeriodSeconds: 120
   minio:
     enabled: false
   ingester:
     replicas: 2
+    terminationGracePeriodSeconds: 120
+  compactor:
+    terminationGracePeriodSeconds: 120
+  querier:
+    terminationGracePeriodSeconds: 120
+  query_frontend:
+    terminationGracePeriodSeconds: 120
+  query_scheduler:
+    terminationGracePeriodSeconds: 120
+  ruler:
+    terminationGracePeriodSeconds: 120
+  store_gateway:
+    terminationGracePeriodSeconds: 120
   mimir:
     structuredConfig:
       # https://github.com/grafana/mimir/discussions/5158
@@ -206,12 +228,15 @@ mimir:
           endpoint: "s3.eu-central-1.amazonaws.com"
           region: eu-central-1
   nginx:
+    terminationGracePeriodSeconds: 120
     replicas: 3
     ingress:
       enabled: false
       ingressClassName: nginx
       annotations:
         cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
       tls:
         - secretName: "mimir-prod-tls"
           hosts:
