@@ -11,11 +11,13 @@ metadata:
   {{- /* Set sync-wave priorities for critical components */}}
   {{- if eq $appName "argocd" }}
     argocd.argoproj.io/sync-wave: "-101"
-  {{- else if or (eq $appName "linkerd-crds") (eq $appName "cert-manager") }}
-    argocd.argoproj.io/sync-wave: "-10"
-  {{- else if eq $appName "linkerd-control-plane" }}
-    argocd.argoproj.io/sync-wave: "-9"
   {{- else if eq $appName "external-secrets" }}
+    argocd.argoproj.io/sync-wave: "-11"
+  {{- else if eq $appName "cert-manager" }}
+    argocd.argoproj.io/sync-wave: "-10"
+  {{- else if eq $appName "linkerd-bootstrap" }}
+    argocd.argoproj.io/sync-wave: "-9"
+  {{- else if eq $appName "linkerd-control-plane" }}
     argocd.argoproj.io/sync-wave: "-8"
   {{- else }}
     argocd.argoproj.io/sync-wave: "-7"

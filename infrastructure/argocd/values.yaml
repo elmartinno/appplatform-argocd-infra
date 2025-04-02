@@ -9,3 +9,7 @@ server:
       nginx.ingress.kubernetes.io/ssl-passthrough: "true"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     tls: true
+controller:
+  env:
+    - name: ARGOCD_SYNC_WAVE_DELAY
+      value: "10"
