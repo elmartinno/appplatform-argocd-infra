@@ -1,0 +1,49 @@
+stages:
+  - changelog
+  - post_release
+
+update_changelog:
+  stage: changelog
+  image:
+    name: orhunp/git-cliff:2.8.0
+    entrypoint: [""]
+  variables:
+    GIT_STRATEGY: clone # clone entire repo instead of reusing workspace
+    GIT_DEPTH: 0 # avoid shallow clone to give cliff all the info it needs
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  before_script:
+    - apt-get update && apt-get install -y git
+    - git config user.email "${GITLAB_USER_EMAIL}"
+    - git config user.name "${GITLAB_USER_NAME}"
+    - git remote set-url origin https://gitlab-ci-token:${GROUP_CI_RELEASE_TOKEN}@gitlab.ba.innovatrics.net/application-platform/argocd-infra.git
+    - git checkout "${CI_COMMIT_BRANCH}"
+    - git pull
+  script:
+    - git-cliff --bump
+    - export BUMPED_VERSION=$(git-cliff --bumped-version)
+    - git-cliff --unreleased -t ${BUMPED_VERSION} --prepend CHANGELOG.md
+
+    - git add CHANGELOG.md
+    - git status
+    - git commit -m "Release ${BUMPED_VERSION} [ci skip]" || echo "No changes to commit"
+
+    - git tag ${BUMPED_VERSION} || echo "Tag ${BUMPED_VERSION} already exists"
+
+    - git push
+    - git push origin ${BUMPED_VERSION}
+
+    - echo "BUMPED_VERSION=$BUMPED_VERSION" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+include:
+  - component: $CI_SERVER_FQDN/ABIS/devops/ci-components/release-jira@1
+    inputs:
+      stage: "post_release"
+      jira_component_name: $CI_PROJECT_NAME
+      version: $BUMPED_VERSION
+      jira_api_credentials: $BASE64_JIRA_CREDENTIALS
+      abis_project_id: "10331"
+      additional_rule: '|| $CI_COMMIT_BRANCH == "master"'
