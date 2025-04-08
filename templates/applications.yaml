@@ -68,13 +68,11 @@ spec:
     - repoURL: {{ $.Values.global.repoURL }}
       targetRevision: {{ $.Values.global.targetRevision }}
       ref: app_repo
+      {{- if $appConfig.include }}
+      path: "{{ $appConfig.include }}"
+      {{- end }}
       directory:
         exclude: "*"
-        {{- if and (index $appConfig.sources 0).directory (index $appConfig.sources 0).directory.include }}
-        include: "{{ (index $appConfig.sources 0).directory.include }}"
-        {{- else if $appConfig.directory }}
-        include: "{{ $appConfig.directory.include }}"
-        {{- end }}
     {{- /* Add infrastructure repository reference */}}
     - repoURL: {{ $.Values.infrastructure.repoURL | default $.Values.global.repoURL }}
       targetRevision: {{ $.Values.infrastructure.targetRevision | default $.Values.global.targetRevision }}
@@ -101,5 +99,9 @@ spec:
     {{- else }}
     {{- toYaml $.Values.global.syncPolicy | nindent 4 }}
     {{- end }}
+  {{- if $appConfig.ignoreDifferences }}
+  ignoreDifferences:
+    {{- toYaml $appConfig.ignoreDifferences | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end }}

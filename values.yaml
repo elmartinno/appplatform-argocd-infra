@@ -86,3 +86,14 @@ infrastructure:
       syncOptions:
         - CreateNamespace=true
         - ServerSideApply=true
+    # https://github.com/argoproj/argo-cd/issues/11143#issuecomment-2360788104
+    ignoreDifferences:
+      - group: "apps"
+        kind: "StatefulSet"
+        jqPathExpressions:
+          - ".spec.volumeClaimTemplates[].apiVersion"
+          - ".spec.volumeClaimTemplates[].kind"
+      - group: "monitoring.coreos.com"
+        kind: "ServiceMonitor"
+        jqPathExpressions:
+          - ".spec.endpoints[].relabelings"
