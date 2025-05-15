@@ -48,6 +48,13 @@ grafana:
           uid: loki
           type: loki
           url: http://{{ .Release.Name }}-loki-gateway
+          jsonData:
+            maxLines: 1000
+            derivedFields:
+              - datasourceUid: tempo
+                matcherRegex: '.+trace_id":"(.+)","span_id.+'
+                name: TraceID
+                url: '$${__value.raw}'  
           isDefault: false
         - name: Mimir
           uid: prom
