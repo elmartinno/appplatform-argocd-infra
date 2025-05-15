@@ -8,6 +8,8 @@ tempo:
     name: "observability-s3-service-account"
   ingester:
     terminationGracePeriodSeconds: 120
+    config:
+      replication_factor: 1
   storage:
     trace:
       backend: s3
