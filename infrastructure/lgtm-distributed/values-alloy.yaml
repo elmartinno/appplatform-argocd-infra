@@ -181,7 +181,7 @@ alloy:
       }
       otelcol.processor.batch "traces" {
         output {
-          traces  = [otelcol.exporter.otlp.traces.input]
+          traces  = [otelcol.exporter.otlp.tempo.input]
         }
       }
 
