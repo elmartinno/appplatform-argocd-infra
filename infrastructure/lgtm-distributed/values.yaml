@@ -2,7 +2,7 @@ grafana-oncall:
   enabled: false
 tempo:
   enabled: true
-  retention: 48h
+  retention: 12h
   serviceAccount:
     create: false
     name: "observability-s3-service-account"
