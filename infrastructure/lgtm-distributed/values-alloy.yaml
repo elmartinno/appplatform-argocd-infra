@@ -1,6 +1,11 @@
 serviceMonitor:
   enabled: true
 alloy:
+  extraPorts:
+  - name: "otelgrpc"
+    port: 4317
+    targetPort: 4317
+    protocol: "TCP"
   configMap:
     content: |-
       //==========================================SETUP==========================================
@@ -17,7 +22,14 @@ alloy:
           url = "http://lgtm-distributed-mimir-nginx/api/v1/push"
         }
       }
-
+      otelcol.exporter.otlp "tempo" {
+        client {
+          endpoint = "http://lgtm-distributed-tempo-distributor:4317/api/v1/push"
+            tls {
+              insecure = true
+              insecure_skip_verify = true
+            }
+        }
       //==========================================SELF_METRICS==========================================
       prometheus.exporter.self "self_metrics" {
       }
@@ -154,4 +166,20 @@ alloy:
       //==========================================ALERT_RULES==========================================
       mimir.rules.kubernetes "default" {
         address = "http://lgtm-distributed-mimir-nginx"
+      }
+
+      //==========================================TRACES==========================================
+      otelcol.receiver.otlp "traces" {
+        http {}
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        output {
+          traces  = [otelcol.processor.batch.traces.input]
+        }
+      }
+      otelcol.processor.batch "traces" {
+        output {
+          traces  = [otelcol.exporter.otlp.traces.input]
+        }
       }
