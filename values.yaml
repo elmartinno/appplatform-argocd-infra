@@ -65,7 +65,7 @@ infrastructure:
     sources:
       - repoURL: https://prometheus-community.github.io/helm-charts
         chart: prometheus-operator-crds
-        targetRevision: "18.0.1"
+        targetRevision: "20.0.0"
       - repoURL: https://grafana.github.io/helm-charts
         chart: lgtm-distributed
         targetRevision: "2.1.0"
@@ -75,7 +75,7 @@ infrastructure:
             - $app_repo/infrastructure/lgtm-distributed/values.yaml
       - repoURL: https://grafana.github.io/helm-charts
         chart: alloy
-        targetRevision: 0.12.3
+        targetRevision: 1.0.3
         helm:
           valueFiles:
             - $infra_repo/infrastructure/lgtm-distributed/values-alloy.yaml
