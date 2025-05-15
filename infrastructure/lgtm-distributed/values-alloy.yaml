@@ -217,4 +217,17 @@ alloy:
           server_name          = "kubernetes"
         }
         scrape_interval = "30s"
+        scrape_timeout = "10s"
+      }
+
+      //==========================================NODE METRICS==========================================
+      prometheus.exporter.unix "os_metrics" { }
+      prometheus.scrape "os_metrics" {
+        clustering {
+            enabled = true
+        }
+        targets    = prometheus.exporter.unix.os_metrics.targets
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+        scrape_timeout = "10s"
       }
