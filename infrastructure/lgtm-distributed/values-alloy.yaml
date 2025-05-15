@@ -30,6 +30,7 @@ alloy:
               insecure_skip_verify = true
             }
         }
+      }
       //==========================================SELF_METRICS==========================================
       prometheus.exporter.self "self_metrics" {
       }
