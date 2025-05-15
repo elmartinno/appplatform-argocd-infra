@@ -26,7 +26,7 @@ infrastructure:
     sources:
       - repoURL: https://charts.external-secrets.io/
         chart: external-secrets
-        targetRevision: "0.14.4"
+        targetRevision: "0.17.0"
         helm:
           valueFiles:
             - $infra_repo/infrastructure/external-secrets/values.yaml
@@ -37,7 +37,7 @@ infrastructure:
     sources:
       - repoURL: https://kubernetes-sigs.github.io/external-dns/
         chart: external-dns
-        targetRevision: "1.15.2"
+        targetRevision: "1.16.1"
         helm:
           valueFiles:
             - $infra_repo/infrastructure/external-dns/values.yaml
@@ -50,13 +50,13 @@ infrastructure:
     sources:
       - repoURL: https://charts.jetstack.io
         chart: cert-manager
-        targetRevision: "1.17.1"
+        targetRevision: "v1.17.2"
         helm:
           valueFiles:
             - $infra_repo/infrastructure/cert-manager/values.yaml
       - repoURL: https://charts.jetstack.io
         chart: trust-manager
-        targetRevision: "0.16.0"
+        targetRevision: "v0.17.1"
 
   lgtm-distributed:
     enabled: true
@@ -75,7 +75,7 @@ infrastructure:
             - $app_repo/infrastructure/lgtm-distributed/values.yaml
       - repoURL: https://grafana.github.io/helm-charts
         chart: alloy
-        targetRevision: 0.12.3
+        targetRevision: 0.12.6
         helm:
           valueFiles:
             - $infra_repo/infrastructure/lgtm-distributed/values-alloy.yaml
