@@ -184,3 +184,37 @@ alloy:
           traces  = [otelcol.exporter.otlp.traces.input]
         }
       }
+
+      //==========================================CA ADVISOR METRICS==========================================
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+      discovery.relabel "pods_metrics" {
+        targets = discovery.kubernetes.nodes.targets
+        rule {
+          replacement  = "kubernetes.default.svc:443"
+          target_label = "__address__"
+        }
+        rule {
+          regex         = "(.+)"
+          replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label  = "__metrics_path__"
+        }
+      }
+      prometheus.scrape "pods_metrics" {
+        clustering {
+            enabled = true
+        }
+        targets      = discovery.relabel.pods_metrics.output
+        job_name     = "integrations/kubernetes/kubelet"
+        scheme       = "https"
+        honor_labels = true
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        bearer_token_file = "/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config {
+          insecure_skip_verify = true
+          server_name          = "kubernetes"
+        }
+        scrape_interval = "30s"
+      }
