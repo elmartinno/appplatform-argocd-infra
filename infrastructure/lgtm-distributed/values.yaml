@@ -1,6 +1,6 @@
 grafana-oncall:
   enabled: false
-  
+
 tempo:
   enabled: true
   retention: 12h
@@ -11,7 +11,10 @@ tempo:
     terminationGracePeriodSeconds: 120
     config:
       replication_factor: 1
-    replicas: 2
+      ring:
+        kvstore:
+          store: memberlist
+    replicas: 1
   storage:
     trace:
       backend: s3
