@@ -75,7 +75,7 @@ spec:
         exclude: "*"
     {{- /* Add infrastructure repository reference */}}
     - repoURL: {{ $.Values.infrastructure.repoURL | default $.Values.global.repoURL }}
-      targetRevision: feat/configure-observability
+      targetRevision: {{ $.Values.infrastructure.targetRevision | default $.Values.global.targetRevision }}
       ref: infra_repo
       {{- if $appConfig.includeDirectoryFromInfraRepo }}
       path: "{{ $appConfig.includeDirectoryFromInfraRepo }}"
