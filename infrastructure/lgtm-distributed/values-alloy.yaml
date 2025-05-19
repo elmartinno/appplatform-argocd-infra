@@ -121,9 +121,6 @@ alloy:
       //==========================================SERVICE_MONITORS==========================================
       discovery.kubernetes "service_monitors" {
         role = "service_monitor"
-        selectors {
-          role = "service_monitor"
-        }
       }
 
       discovery.kubernetes "pods" {
