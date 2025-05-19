@@ -163,7 +163,7 @@ alloy:
       }
       prometheus.scrape "pods_metrics" {
         clustering {
-            enabled = true
+          enabled = true
         }
         targets      = discovery.relabel.pods_metrics.output
         job_name     = "integrations/kubernetes/kubelet"
@@ -183,7 +183,7 @@ alloy:
       prometheus.exporter.unix "os_metrics" { }
       prometheus.scrape "os_metrics" {
         clustering {
-            enabled = true
+          enabled = true
         }
         targets    = prometheus.exporter.unix.os_metrics.targets
         forward_to = [prometheus.remote_write.mimir.receiver]
