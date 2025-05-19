@@ -119,46 +119,50 @@ alloy:
       }
 
       //==========================================SERVICE_MONITORS==========================================
-      discovery.kubernetes "service_monitors" {
-        role = "service_monitor"
-      }
+      # discovery.kubernetes "service_monitors" {
+      #   role = "service_monitor"
+      # }
 
-      discovery.kubernetes "pods" {
-        role = "pod"
-      }
+      # discovery.kubernetes "pods" {
+      #   role = "pod"
+      # }
 
-      discovery.kubernetes "endpoints" {
-        role = "endpoints"
-      }
+      # discovery.kubernetes "endpoints" {
+      #   role = "endpoints"
+      # }
 
-      prometheus.scrape "service_monitors" {
-        targets = discovery.kubernetes.service_monitors.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
-      }
+      # prometheus.scrape "service_monitors" {
+      #   targets = discovery.kubernetes.service_monitors.targets
+      #   forward_to = [prometheus.remote_write.mimir.receiver]
+      #   clustering {
+      #     enabled = true
+      #   }
+      #   scrape_interval = "30s"
+      #   scrape_timeout = "10s"
+      # }
 
-      prometheus.scrape "pods" {
-        targets = discovery.kubernetes.pods.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
-      }
+      # prometheus.scrape "pods" {
+      #   targets = discovery.kubernetes.pods.targets
+      #   forward_to = [prometheus.remote_write.mimir.receiver]
+      #   clustering {
+      #     enabled = true
+      #   }
+      #   scrape_interval = "30s"
+      #   scrape_timeout = "10s"
+      # }
 
-      prometheus.scrape "endpoints" {
-        targets = discovery.kubernetes.endpoints.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
+      # prometheus.scrape "endpoints" {
+      #   targets = discovery.kubernetes.endpoints.targets
+      #   forward_to = [prometheus.remote_write.mimir.receiver]
+      #   clustering {
+      #     enabled = true
+      #   }
+      #   scrape_interval = "30s"
+      #   scrape_timeout = "10s"
+      # }
+      prometheus.operator.servicemonitors "servicemonitor" {
+          forward_to = <RECEIVER_LIST>
+          forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
       //==========================================ALERT_RULES==========================================
