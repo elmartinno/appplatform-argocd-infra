@@ -161,7 +161,6 @@ alloy:
       #   scrape_timeout = "10s"
       # }
       prometheus.operator.servicemonitors "servicemonitor" {
-          forward_to = <RECEIVER_LIST>
           forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
