@@ -1,6 +1,11 @@
 serviceMonitor:
   enabled: true
 alloy:
+  extraPorts:
+  - name: "otelgrpc"
+    port: 4317
+    targetPort: 4317
+    protocol: "TCP"
   configMap:
     content: |-
       //==========================================SETUP==========================================
@@ -17,7 +22,15 @@ alloy:
           url = "http://lgtm-distributed-mimir-nginx/api/v1/push"
         }
       }
-
+      otelcol.exporter.otlp "tempo" {
+        client {
+          endpoint = "lgtm-distributed-tempo-distributor:4317"
+            tls {
+              insecure = true
+              insecure_skip_verify = true
+            }
+        }
+      }
       //==========================================SELF_METRICS==========================================
       prometheus.exporter.self "self_metrics" {
       }
@@ -106,52 +119,74 @@ alloy:
       }
 
       //==========================================SERVICE_MONITORS==========================================
-      discovery.kubernetes "service_monitors" {
-        role = "service_monitor"
-        selectors {
-          role = "service_monitor"
-        }
-      }
-
-      discovery.kubernetes "pods" {
-        role = "pod"
-      }
-
-      discovery.kubernetes "endpoints" {
-        role = "endpoints"
-      }
-
-      prometheus.scrape "service_monitors" {
-        targets = discovery.kubernetes.service_monitors.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
-      }
-
-      prometheus.scrape "pods" {
-        targets = discovery.kubernetes.pods.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
-      }
-
-      prometheus.scrape "endpoints" {
-        targets = discovery.kubernetes.endpoints.targets
-        forward_to = [prometheus.remote_write.mimir.receiver]
-        clustering {
-          enabled = true
-        }
-        scrape_interval = "30s"
-        scrape_timeout = "10s"
+      prometheus.operator.servicemonitors "servicemonitor" {
+          forward_to = [prometheus.remote_write.mimir.receiver]
       }
 
       //==========================================ALERT_RULES==========================================
       mimir.rules.kubernetes "default" {
         address = "http://lgtm-distributed-mimir-nginx"
+      }
+
+      //==========================================TRACES==========================================
+      otelcol.receiver.otlp "traces" {
+        http {}
+        grpc {
+          endpoint = "0.0.0.0:4317"
+        }
+        output {
+          traces  = [otelcol.processor.batch.traces.input]
+        }
+      }
+      otelcol.processor.batch "traces" {
+        output {
+          traces  = [otelcol.exporter.otlp.tempo.input]
+        }
+      }
+
+      //==========================================CA ADVISOR METRICS==========================================
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+      discovery.relabel "pods_metrics" {
+        targets = discovery.kubernetes.nodes.targets
+        rule {
+          replacement  = "kubernetes.default.svc:443"
+          target_label = "__address__"
+        }
+        rule {
+          regex         = "(.+)"
+          replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label  = "__metrics_path__"
+        }
+      }
+      prometheus.scrape "pods_metrics" {
+        clustering {
+          enabled = true
+        }
+        targets      = discovery.relabel.pods_metrics.output
+        job_name     = "integrations/kubernetes/kubelet"
+        scheme       = "https"
+        honor_labels = true
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        bearer_token_file = "/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config {
+          insecure_skip_verify = true
+          server_name          = "kubernetes"
+        }
+        scrape_interval = "30s"
+        scrape_timeout = "10s"
+      }
+
+      //==========================================NODE METRICS==========================================
+      prometheus.exporter.unix "os_metrics" { }
+      prometheus.scrape "os_metrics" {
+        clustering {
+          enabled = true
+        }
+        targets    = prometheus.exporter.unix.os_metrics.targets
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+        scrape_timeout = "10s"
       }
