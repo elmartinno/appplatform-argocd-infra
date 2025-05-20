@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.1.0...0.2.0) (2025-05-20)
+
+### 🚀🚀🚀 Features
+
+- [AP-266](https://innovatrics.atlassian.net/browse/AP-266): Configure observability ([5f48fc6](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/commit/5f48fc603448c1abdbed7de633ec2493b056821e))
+
 ## [0.1.0](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.0.1...0.1.0) (2025-04-08)
 
 ### 🚀🚀🚀 Features
