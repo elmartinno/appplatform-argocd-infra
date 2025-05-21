@@ -73,6 +73,7 @@ infrastructure:
           valueFiles:
             - $infra_repo/infrastructure/lgtm-distributed/values.yaml
             - $app_repo/infrastructure/lgtm-distributed/values.yaml
+            - $app_repo/infrastructure/lgtm-distributed/dashboards.yaml
       - repoURL: https://grafana.github.io/helm-charts
         chart: alloy
         targetRevision: 0.12.3
