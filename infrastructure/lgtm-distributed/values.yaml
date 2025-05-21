@@ -90,13 +90,6 @@ grafana:
               datasourceUid: prom
             serviceMap:
               datasourceUid: prom
-  sidecar:
-    dashboards:
-      enabled: true
-      labelValue: "1"
-      enableNewTablePanelSyntax: true
-      provider:
-        allowUiUpdates: true
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
