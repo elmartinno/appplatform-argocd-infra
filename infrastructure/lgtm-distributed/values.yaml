@@ -6,7 +6,7 @@ tempo:
   retention: 12h
   serviceAccount:
     create: false
-    name: "observability-s3-service-account"
+    name: "s3-service-account"
   ingester:
     terminationGracePeriodSeconds: 120
     config:
@@ -100,7 +100,7 @@ grafana:
 loki:
   serviceAccount:
     create: false
-    name: "observability-s3-service-account"
+    name: "s3-service-account"
   serviceMonitor:
     enabled: true
   selfMonitoring:
@@ -176,7 +176,7 @@ loki:
 mimir:
   serviceAccount:
     create: false
-    name: "observability-s3-service-account"
+    name: "s3-service-account"
   metaMonitoring:
     dashboards:
       enabled: true
