@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.2.0...0.2.1) (2025-05-21)
+
+### 🐛 Bug Fixes
+
+- rename observability-s3-service-account to s3-service-account ([d94bedf](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/commit/d94bedf07fa317fd3c39bbe626a4123388b6a58d))
+
 ## [0.2.0](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.1.0...0.2.0) (2025-05-20)
 
 ### 🚀🚀🚀 Features
