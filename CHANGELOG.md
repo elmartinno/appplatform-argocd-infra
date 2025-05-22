@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.2.1...0.3.0) (2025-05-22)
+
+### 🚀🚀🚀 Features
+
+- [AP-273](https://innovatrics.atlassian.net/browse/AP-273): observability charts persist in gitops principles ([c6090f2](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/commit/c6090f2d41f31fe76f7e14a3092f0ec7b7bce716))
+
 ## [0.2.1](https://gitlab.ba.innovatrics.net/application-platform/argocd-infra/-/compare/0.2.0...0.2.1) (2025-05-21)
 
 ### 🐛 Bug Fixes
