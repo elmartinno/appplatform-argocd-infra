@@ -1,0 +1,4 @@
+settings:
+  eksControlPlane: true
+serviceMonitor:
+  enabled: true

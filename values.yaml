@@ -107,4 +107,5 @@ infrastructure:
         targetRevision: "1.4.0"
         helm:
           valueFiles:
+            - $infra_repo/infrastructure/karpenter/values.yaml
             - $app_repo/infrastructure/karpenter/values.yaml
