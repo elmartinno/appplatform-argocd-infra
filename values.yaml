@@ -97,3 +97,14 @@ infrastructure:
         kind: "ServiceMonitor"
         jqPathExpressions:
           - ".spec.endpoints[].relabelings"
+
+  karpenter:
+    enabled: true
+    namespace: karpenter
+    sources:
+      - repoURL: public.ecr.aws
+        chart: karpenter/karpenter
+        targetRevision: "1.4.0"
+        helm:
+          valueFiles:
+            - $app_repo/infrastructure/karpenter/values.yaml
