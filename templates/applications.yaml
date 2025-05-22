@@ -70,9 +70,10 @@ spec:
       ref: app_repo
       {{- if $appConfig.include }}
       path: "{{ $appConfig.include }}"
-      {{- end }}
+      {{- else }}
       directory:
         exclude: "*"
+      {{- end }}
     {{- /* Add infrastructure repository reference */}}
     - repoURL: {{ $.Values.infrastructure.repoURL | default $.Values.global.repoURL }}
       targetRevision: {{ $.Values.infrastructure.targetRevision | default $.Values.global.targetRevision }}
